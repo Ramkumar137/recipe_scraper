@@ -1,0 +1,12 @@
+app = "recipe-scraper"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[processes]
+  web = "uvicorn app.main:app --host 0.0.0.0 --port 8080"
+  worker = "python app/worker.py"
+
+[[services]]
+  processes = ["web"]
+  internal_port = 8080

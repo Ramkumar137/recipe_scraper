@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Pandas / temp files
+*.csv
+
+# Fly.io
+.fly/
+fly.toml.bak
+
+# Editor
+.vscode/
+.idea/
