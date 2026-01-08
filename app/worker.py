@@ -3,6 +3,8 @@ from app.database import get_conn
 from app.scraper import scrape_url
 from app.astra import save_to_astra
 from app.emailer import send_email
+from app.astra import save_to_primary_astra, save_to_secondary_astra
+from app.dynamodb import save_to_dynamodb
 
 BATCH_SIZE = 8
 
@@ -56,27 +58,37 @@ async def worker_loop():
         cur.close()
         conn.close()
 
-
 async def process_url(row_id, url, filename):
     conn = get_conn()
     cur = conn.cursor()
 
     try:
-        data = await scrape_url(url)
-        save_to_astra(data)
+        recipe_data = await scrape_url(url)
 
+        # 1. Primary AstraDB (full JSON + vector)
+        recipe_id = save_to_primary_astra(recipe_data)
+
+        # 2. Secondary AstraDB (id + vector only)
+        save_to_secondary_astra(
+            recipe_id=recipe_id,
+            text_for_vector=recipe_data.get("title", "")
+        )
+
+        # 3. DynamoDB (full JSON)
+        save_to_dynamodb(recipe_id, recipe_data)
+
+        # ALL succeeded → remove from queue
         cur.execute("DELETE FROM url_queue WHERE id=%s", (row_id,))
         conn.commit()
 
     except Exception as e:
+        print(f"❌ Failed for URL {url}: {e}")
         cur.execute(
             "UPDATE url_queue SET status='FAILED' WHERE id=%s",
             (row_id,)
         )
         conn.commit()
 
-    cur.close()
-    conn.close()
-
-if __name__ == "__main__":
-    asyncio.run(worker_loop())
+    finally:
+        cur.close()
+        conn.close()
