@@ -23,9 +23,23 @@ async def worker_loop():
         rows = cur.fetchall()
 
         if not rows:
+            # Check for completed jobs
+            cur.execute("""
+                SELECT DISTINCT filename
+                FROM url_queue
+                WHERE status = 'PENDING'
+            """)
+            pending_files = cur.fetchall()
+
+            if not pending_files:
+                send_email(
+                    subject="Scraping completed",
+                    body="All queued CSV files have been processed."
+                )
+
             cur.close()
             conn.close()
-            await asyncio.sleep(10)
+            await asyncio.sleep(15)
             continue
 
         ids = [r[0] for r in rows]
@@ -35,14 +49,13 @@ async def worker_loop():
         )
         conn.commit()
 
-        tasks = []
-        for _id, url, filename in rows:
-            tasks.append(process_url(_id, url, filename))
-
-        await asyncio.gather(*tasks)
+        await asyncio.gather(
+            *[process_url(r[0], r[1]) for r in rows]
+        )
 
         cur.close()
         conn.close()
+
 
 async def process_url(row_id, url, filename):
     conn = get_conn()
