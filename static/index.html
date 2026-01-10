@@ -74,13 +74,21 @@ async function upload() {
             body: formData
         });
 
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text);
+        }
+
         const data = await res.json();
         result.innerText = `Queued ${data.count} URLs successfully.`;
+
     } catch (err) {
-        result.innerText = "Upload failed.";
+        result.innerText = "Upload failed. Check server logs.";
+        console.error(err);
     }
 }
 </script>
+
 
 </body>
 </html>

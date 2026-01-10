@@ -13,3 +13,4 @@ def send_email(subject, body):
         server.starttls()
         server.login(EMAIL_USER, EMAIL_PASSWORD)
         server.send_message(msg)
+

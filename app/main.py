@@ -3,9 +3,20 @@ from fastapi.staticfiles import StaticFiles
 import pandas as pd
 from app.database import get_conn
 from app.emailer import send_email
+from urllib.parse import urlparse
 
 app = FastAPI()
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+# Serve UI at /ui (NOT /)
+app.mount("/ui", StaticFiles(directory="static", html=True), name="static")
+
+
+def is_valid_url(url: str) -> bool:
+    try:
+        r = urlparse(url)
+        return all([r.scheme, r.netloc])
+    except:
+        return False
 
 
 @app.post("/upload")
@@ -14,7 +25,15 @@ async def upload_csv(
     file: UploadFile = File(...)
 ):
     df = pd.read_csv(file.file)
-    urls = df.iloc[:, 0].dropna().unique()
+
+    urls = [
+        u.strip()
+        for u in df.iloc[:, 0].dropna().unique()
+        if is_valid_url(str(u))
+    ]
+
+    if not urls:
+        return {"count": 0, "message": "No valid URLs found"}
 
     conn = get_conn()
     cur = conn.cursor()
@@ -35,4 +54,4 @@ async def upload_csv(
         f"{file.filename} queued with {len(urls)} URLs."
     )
 
-    return {"status": "queued", "count": len(urls)}
+    return {"count": len(urls)}
