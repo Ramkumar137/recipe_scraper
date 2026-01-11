@@ -1,17 +1,21 @@
-import os
 from dotenv import load_dotenv
+import os
+
 load_dotenv()
 
-
 DATABASE_URL = os.getenv("DATABASE_URL")
-print("DATABASE_URL =", DATABASE_URL)
 
+ASTRA_PRIMARY_DB_URL = os.getenv("ASTRA_PRIMARY_DB_URL")
+ASTRA_PRIMARY_DB_TOKEN = os.getenv("ASTRA_PRIMARY_DB_TOKEN")
 
-ASTRA_DB_URL = os.getenv("ASTRA_DB_URL")
-ASTRA_DB_TOKEN = os.getenv("ASTRA_DB_TOKEN")
+ASTRA_SECONDARY_DB_URL = os.getenv("ASTRA_SECONDARY_DB_URL")
+ASTRA_SECONDARY_DB_TOKEN = os.getenv("ASTRA_SECONDARY_DB_TOKEN")
+
+AWS_REGION = os.getenv("AWS_REGION")
+DYNAMO_TABLE_NAME = os.getenv("DYNAMO_TABLE_NAME")
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_TO = os.getenv("EMAIL_TO")

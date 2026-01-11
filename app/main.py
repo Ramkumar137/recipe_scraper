@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 app = FastAPI()
 
-# Serve UI at /ui (NOT /)
 app.mount("/ui", StaticFiles(directory="static", html=True), name="static")
 
 

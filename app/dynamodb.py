@@ -1,7 +1,6 @@
 import boto3
 import os
-
-DYNAMO_TABLE = os.getenv("DYNAMO_TABLE_NAME")
+from decimal import Decimal
 
 dynamodb = boto3.resource(
     "dynamodb",
@@ -10,13 +9,18 @@ dynamodb = boto3.resource(
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
 )
 
-table = dynamodb.Table(DYNAMO_TABLE)
+table = dynamodb.Table(os.getenv("DYNAMO_TABLE_NAME"))
 
 
-def save_to_dynamodb(recipe_id: str, recipe_json: dict):
-    table.put_item(
-        Item={
-            "recipe_id": recipe_id,
-            "data": recipe_json
-        }
-    )
+def save_to_dynamodb(recipe_id: int, recipe_json: dict):
+    item = {
+        "id": str(recipe_id),  # MUST be string
+    }
+
+    for key, value in recipe_json.items():
+        if isinstance(value, float):
+            item[key] = Decimal(str(value))
+        else:
+            item[key] = value
+
+    table.put_item(Item=item)
